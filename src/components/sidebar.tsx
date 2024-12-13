@@ -18,6 +18,7 @@ import {
   IconHeart,
   IconHome2,
   IconId,
+  IconMapQuestion,
   IconNote,
   IconProgress,
   IconSettings,
@@ -40,6 +41,10 @@ export const miscNavigation = [
   { name: "Walnuts", href: "/island/walnuts", icon: IconProgress },
   { name: "Secret Notes", href: "/notes", icon: IconNote },
   { name: "Journal Scraps", href: "/island/scraps", icon: IconBook },
+];
+
+export const siteNavigation = [
+  { name: "FAQ", href: "/faq", icon: IconMapQuestion },
   { name: "Account Settings", href: "/account", icon: IconSettings },
 ];
 
@@ -192,6 +197,28 @@ export function Sidebar({ className }: SidebarProps) {
         <SidebarCategory>Misc</SidebarCategory>
         <div className="space-y-1">
           {miscNavigation.map((item) => (
+            <Button
+              key={item.href}
+              variant={pathname === item.href ? "secondary" : "ghost"}
+              className={cn(
+                "w-full justify-start",
+                item.href === pathname
+                  ? ""
+                  : "text-neutral-600 dark:text-neutral-400",
+              )}
+              asChild
+            >
+              <Link href={item.href}>
+                <item.icon className="mr-2 h-4 w-4" aria-hidden="true" />
+                {item.name}
+              </Link>
+            </Button>
+          ))}
+        </div>
+
+        <SidebarCategory>Misc</SidebarCategory>
+        <div className="space-y-1">
+          {siteNavigation.map((item) => (
             <Button
               key={item.href}
               variant={pathname === item.href ? "secondary" : "ghost"}
