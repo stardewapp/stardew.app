@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Purpose: to parse Objects.json from the content folder and keep relevant information
 # Result is saved to data/objects.json
 # { itemID: { name, description, category, iconURL } }
@@ -20,15 +22,23 @@ from helpers.utils import (
 # could eventually only save the items we use
 skip = set(["925", "927", "929", "930"])  # have descriptions but no use or image
 
-# hardcoded checks for strange dolls because their name doesn't include the color
-dolls = {
+# hardcoded names for objects whose names don't include enough information
+# strange dolls name doesn't include the color
+# dried fruit and mushroom names are only "Dried"
+nameOverrides = {
     "126": "Strange Doll (green)",
     "127": "Strange Doll (yellow)",
+    "DriedFruit": "Dried Fruit",
+    "DriedMushroom": "Dried Mushroom",
+}
+
+descriptionOverrides = {
+    "DriedFruit": "Chewy pieces of dried fruit."
 }
 
 # load the content files
 OBJECTS: dict[str, ContentObjectModel] = load_content("Objects.json")
-SPRITES: dict[str, str] = load_content("sprites.json")
+# SPRITES: dict[str, str] = load_content("sprites.json")
 OBJ_STRINGS: dict[str, str] = load_strings("Objects.json")
 STRINGS: dict[str, str] = load_strings("StringsFromCSFiles.json")
 STRINGS_1_6: dict[str, str] = load_strings("1_6_Strings.json")
@@ -43,12 +53,16 @@ def get_objects() -> dict[str, Object]:
         if key in skip:
             continue
 
-        if key in dolls:
-            name = dolls[key]
+        if key in nameOverrides:
+            name = nameOverrides[key]
         else:
             name = get_string(value["DisplayName"])
 
-        description = get_string(value["Description"])
+        if key in descriptionOverrides:
+            description = descriptionOverrides[key]
+        else:
+            description = get_string(value["Description"])
+            
         category = getCategoryName(
             Type=value["Type"],
             Category=value["Category"],
