@@ -60,23 +60,18 @@ export function parseSaveFile(xml: string) {
     // objects are unprocessed and will be used to parse each player's data
     players = getAllFarmhands(saveFile.SaveGame);
 
-    // find the prefix to use for attributes (xsi for pc, p3 for mobile)
-    const prefix =
-      typeof saveFile.SaveGame["@_xmlns:xsi"] === "undefined" ? "p3" : "xsi";
-
-    // console.log(prefix === "xsi" ? "PC" : "Mobile");
-
     const parsedBundles = parseBundles(
       saveFile.SaveGame.bundleData,
       saveFile.SaveGame.locations.GameLocation.find(
-        (obj: any) => obj[`@_${prefix}:type`] === "CommunityCenter",
+        (obj: any) => Object.entries(obj).some(([k, v]) => k.endsWith(':type') && v == 'CommunityCenter'),
+
       ),
       version,
     );
-
+    
     const parsedMuseum = parseMuseum(
       saveFile.SaveGame.locations.GameLocation.find(
-        (obj: any) => obj[`@_${prefix}:type`] === "LibraryMuseum",
+        (obj: any) => Object.entries(obj).some(([k, v]) => k.endsWith(':type') && v == 'LibraryMuseum'),
       ),
       version,
     );
@@ -84,10 +79,10 @@ export function parseSaveFile(xml: string) {
     const parsedWalnuts = parseWalnuts(saveFile.SaveGame);
 
     // obelisks and golden clock
-    const parsedPerfection = parsePerfection(prefix, saveFile.SaveGame);
+    const parsedPerfection = parsePerfection(saveFile.SaveGame);
 
     // Map of uniqueMultiplayerID to array of children names
-    const children = findChildren(prefix, saveFile.SaveGame);
+    const children = findChildren(saveFile.SaveGame);
 
     let processedPlayers: any[] = [];
 

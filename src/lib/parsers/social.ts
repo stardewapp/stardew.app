@@ -1,7 +1,6 @@
 import villagers from "@/data/villagers.json";
 
 export function findChildren(
-  prefix: string,
   SaveGame: any
 ): Map<string, number> {
   // for now we only care about the number of children, may have to adjust
@@ -18,8 +17,8 @@ export function findChildren(
       if (Array.isArray(location.characters.NPC)) {
         // multiple characters in location
         for (const NPC of location.characters.NPC) {
-          if (!NPC[`@_${prefix}:type`]) continue;
-          if (NPC[`@_${prefix}:type`] === "Child") {
+          if (!Object.keys(NPC).some(e => e.endsWith(':type'))) continue;
+          if (Object.entries(NPC).some(([k, v]) => k.endsWith(':type') && v == 'Child')) {
             // found a child, increment count, or add to map if not present
             children.set(
               NPC.idOfParent,
@@ -30,7 +29,7 @@ export function findChildren(
       } else {
         // only one character in location, check if it's a child
         let NPC = location.characters.NPC;
-        if (NPC[`@_${prefix}:type`] === "Child") {
+        if (Object.entries(NPC).some(([k, v]) => k.endsWith(':type') && v == 'Child')) {
           // found a child, increment count, or add to map if not present
           children.set(NPC.idOfParent, (children.get(NPC.idOfParent) ?? 0) + 1);
         }

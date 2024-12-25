@@ -5,7 +5,6 @@ export interface PerfectionRet {
 }
 
 export const parsePerfection = (
-  prefix: string,
   SaveGame: any,
 ): PerfectionRet => {
   let numObelisks = 0;
@@ -27,7 +26,7 @@ export const parsePerfection = (
 
     // For now, we'll only look in the GameLocation named "Farm", if this is wrong, we'll fix it later
     for (const location of SaveGame.locations.GameLocation) {
-      if (!(location[`@_${prefix}:type`] === "Farm")) continue;
+      if (!(Object.entries(location).some(([k, v]) => k.endsWith(':type') && v == 'Farm'))) continue;
 
       if (!location.buildings)
         return { numObelisks, goldenClock, perfectionWaivers };

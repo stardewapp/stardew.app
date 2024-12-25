@@ -12,6 +12,7 @@ import { useContext } from "react";
 import Dropzone from "react-dropzone";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
+import pako from "pako";
 
 interface Props {
   open: boolean;
@@ -41,13 +42,27 @@ export const UploadDialog = ({ open, setOpen }: Props) => {
       uploadPromise = new Promise((resolve, reject) => {
         reader.onload = async function (event) {
           try {
-            const players = parseSaveFile(event.target?.result as string);
+            const arrayBuffer = event.target?.result as ArrayBuffer;
+            const content = new Uint8Array(arrayBuffer);
+
+            let decompressedContent;
+            if (content[0] === 120) {  // This is also how vanilla checks if a save is compressed. Around SaveGame.cs Line 671
+              // File is zlib compressed
+              const decompressed = pako.inflate(content);
+              decompressedContent = new TextDecoder().decode(decompressed);
+            } else {
+              // File is not compressed
+              decompressedContent = new TextDecoder().decode(content);
+            }
+
+            const players = parseSaveFile(decompressedContent);
             await uploadPlayers(players);
             resolve("Your save file was successfully uploaded!");
           } catch (err) {
+            console.error("Error processing file:", err);
             reject(err instanceof Error ? err.message : "Unknown error.");
           }
-        };
+        }
       });
 
       // Start the loading toast
@@ -61,7 +76,8 @@ export const UploadDialog = ({ open, setOpen }: Props) => {
       uploadPromise = null;
     };
 
-    reader.readAsText(file);
+    // reader.readAsText(file);
+    reader.readAsArrayBuffer(file);
   };
 
   return (
