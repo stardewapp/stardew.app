@@ -49,10 +49,12 @@ import {
 } from "@/components/ui/accordion";
 import { Progress } from "@/components/ui/progress";
 import { useMediaQuery } from "@react-hook/media-query";
-import { IconSettings } from "@tabler/icons-react";
+import { IconClock, IconCloud, IconSettings } from '@tabler/icons-react';
 import clsx from "clsx";
 import { useEffect, useState } from "react";
 import { isNumber } from "util";
+import { FilterButton, FilterSearch } from '@/components/filter-btn';
+import { Command, CommandInput } from '@/components/ui/command';
 
 export const ItemQualityToString = {
   "0": "Normal",
@@ -415,6 +417,8 @@ export default function Bundles() {
   const [showPrompt, setPromptOpen] = useState(false);
   const { show, toggleShow } = usePreferences();
 
+  const [_filter, setFilter] = useState("all");
+
   let [open, setIsOpen] = useState(false);
   let [object, setObject] = useState<BundleItemWithLocation | null>(null);
   let [bundles, setBundles] = useState<BundleWithStatus[]>([]);
@@ -489,9 +493,10 @@ export default function Bundles() {
 
     let completed = false;
     let additionalDescription = "";
+    let completedCount = 0;
 
     if (name === "Local Legend") {
-      let completedCount = bundles.reduce((acc, curBundelRet) => {
+      completedCount = bundles.reduce((acc, curBundelRet) => {
         if (BundleCompleted(curBundelRet)) return acc + 1;
         return acc;
       }, 0);
@@ -503,7 +508,7 @@ export default function Bundles() {
 
     if (activePlayer?.general?.jojaMembership?.isMember) {
       if (name === "Joja Co. Member Of The Year") {
-        let completedCount =
+        completedCount =
           activePlayer?.general?.jojaMembership?.developmentProjects?.length;
         completed = completedCount >= 5;
         if (!completed) {
@@ -512,7 +517,7 @@ export default function Bundles() {
       }
     }
 
-    return { completed, additionalDescription };
+    return { completed, additionalDescription, completedCount };
   };
 
   return (
@@ -561,6 +566,23 @@ export default function Bundles() {
                 );
               })}
           </AccordionSection>
+          {/* Filters */}
+          <div className="grid grid-cols-1 justify-between gap-2 lg:flex">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-3">
+              <FilterButton
+                target={"0"}
+                _filter={_filter}
+                title={`Incomplete (${31 - (getAchievementProgress("Local Legend")?.["completedCount"] ?? 0)})`}
+                setFilter={setFilter}
+              />
+              <FilterButton
+                target={"2"}
+                _filter={_filter}
+                title={`Completed (${(getAchievementProgress("Local Legend")?.["completedCount"] ?? 0)})`}
+                setFilter={setFilter}
+              />
+            </div>
+          </div>
           {CommunityCenterRooms.map((roomName: CommunityCenterRoomName) => {
             let roomBundles: BundleWithStatus[] = [];
             let completedCount = 0;
@@ -571,6 +593,12 @@ export default function Bundles() {
                 } else {
                   return false;
                 }
+              }).filter((f) => {
+                if (_filter === "0") {
+                  return f.bundleStatus.slice(0, f.bundle.items.length).includes(false);
+                } else if (_filter === "2") {
+                  return !f.bundleStatus.slice(0, f.bundle.items.length).includes(false);
+                } else return true; // all
               });
               completedCount = roomBundles.reduce((acc, curBundelRet) => {
                 if (BundleCompleted(curBundelRet)) return acc + 1;
